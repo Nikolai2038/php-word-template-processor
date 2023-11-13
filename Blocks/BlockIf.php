@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Helpers\PhpWord\Blocks;
+namespace App\Helpers\PhpWordHelper\Blocks;
 
 use App\Helpers\PhpWordHelper\BlockDouble;
 use Exception;
@@ -45,8 +45,7 @@ class BlockIf extends BlockDouble
             } elseif ($word === 'not') {
                 $new_word = ' ! ';
                 $tag_without_id = str_replace(' ' . $word . ' ', $new_word, $tag_without_id);
-            }
-            // Всё остальное является переменными - преобразовываем их из строчек с точками в PHP-код
+            } // Всё остальное является переменными - преобразовываем их из строчек с точками в PHP-код
             elseif ($word !== self::RESERVED_KEYWORD_IF) {
                 $new_word = self::ConvertVariableNameWithDotsToPhpCode(
                     str_replace('(', '', str_replace(')', '', $word))
@@ -60,7 +59,7 @@ class BlockIf extends BlockDouble
 
     /**
      * Проверяет условие тега.
-     * @param  array|null $data Массив данных, из которого брать значения переменных
+     * @param array|null $data Массив данных, из которого брать значения переменных
      * @return bool       True - условие верно, false - условие неверно
      */
     public function CheckCondition(?array $data): bool

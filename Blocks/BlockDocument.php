@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Helpers\PhpWord\Blocks;
+namespace App\Helpers\PhpWordHelper\Blocks;
 
 use App\Helpers\PhpWordHelper\Block;
 use App\Helpers\PhpWordHelper\BlockDouble;
@@ -110,7 +110,7 @@ class BlockDocument extends BlockDouble
 
     /**
      * Проверяет, начинается ли название тега с зарезервированного слова двойного блока.
-     * @param  string $tag Переменная
+     * @param string $tag Переменная
      * @return bool   True - является, false - не является
      */
     private function IsStartWithReserved(string $tag): bool

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Helpers\PhpWord\Blocks;
+namespace App\Helpers\PhpWordHelper\Blocks;
 
 use App\Helpers\PhpWordHelper\BlockDouble;
 use Exception;
@@ -35,13 +35,11 @@ class BlockForeach extends BlockDouble
         if ($tag_data[2] === self::RESERVED_KEYWORD_AS) {
             $this->foreach_array_name = $tag_data[1];
             $this->foreach_variable_name = $tag_data[3];
-        }
-        // Если условие цикла разделяется ключевым словом "in", то сначала идёт название переменной, а потом название массива
+        } // Если условие цикла разделяется ключевым словом "in", то сначала идёт название переменной, а потом название массива
         elseif ($tag_data[2] === self::RESERVED_KEYWORD_IN) {
             $this->foreach_array_name = $tag_data[3];
             $this->foreach_variable_name = $tag_data[1];
-        }
-        // Иначе - синтаксическая ошибка
+        } // Иначе - синтаксическая ошибка
         else {
             throw new Exception("Синтаксическая ошибка в шаблоне Word! Неправильный синтаксис foreach в теге '$tag_without_id'. Неизвестное слово-разделитель '$tag_data[2]'");
         }

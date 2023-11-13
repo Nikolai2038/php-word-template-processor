@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Helpers\PhpWord\Blocks;
+namespace App\Helpers\PhpWordHelper\Blocks;
 
 use App\Helpers\PhpWordHelper\PhpWordTemplateProcessor;
 use Exception;
@@ -51,8 +51,7 @@ class BlockVariableImage extends BlockVariable
         $count = count($tag_data);
         if ($count > 4) {
             throw new Exception("Неправильный синтаксис тега image! Тег '$tag_with_id'. Требуемый синтаксис: 'image[ <ширина в см>[ <высота в см>]] <url>[:<default_url>]'");
-        }
-        // Указано ключевое слово, ширина/высота и url
+        } // Указано ключевое слово, ширина/высота и url
         elseif ($count === 4) {
             if ($tag_data[1] === 'null' && $tag_data[2] === 'null') {
                 throw new Exception("Ширина и высота не могут быть одновременно равны null!");
@@ -71,8 +70,7 @@ class BlockVariableImage extends BlockVariable
             }
             // Убираем из названия тега информацию о ширине и высоте
             $this->tag_with_id = $tag_data[0] . ' ' . $tag_data[3];
-        }
-        // Если указано просто значение, то рассматриваем его как ширину
+        } // Если указано просто значение, то рассматриваем его как ширину
         elseif ($count === 3) {
             $this->width = self::GetImageUnitsFromCentimeteres(floatval($tag_data[1]));
             $this->height = self::UNLIMITED_SIZE_IN_IMAGE_POINTS;
@@ -105,7 +103,7 @@ class BlockVariableImage extends BlockVariable
 
     /**
      * Получает количество специальных единиц масштабирования изображения из сантиметров.
-     * @param  float $centimeteres Сантиметры
+     * @param float $centimeteres Сантиметры
      * @return int   Количество специальных единиц масштабирования изображения
      */
     private static function GetImageUnitsFromCentimeteres(float $centimeteres): int

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Helpers\PhpWord\Blocks;
+namespace App\Helpers\PhpWordHelper\Blocks;
 
 use App\Helpers\PhpWordHelper\Block;
 use App\Helpers\PhpWordHelper\PhpWordTemplateProcessor;
@@ -21,7 +21,7 @@ class BlockVariable extends Block
 
     /**
      * Создаёт блок переменной.
-     * @param string                   $tag_with_id        Название тега
+     * @param string $tag_with_id Название тега
      * @param PhpWordTemplateProcessor $template_processor Класс для работы с объектами Word
      */
     public function __construct(string $tag_with_id, PhpWordTemplateProcessor $template_processor)
