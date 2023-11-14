@@ -7,12 +7,12 @@ use PhpOffice\PhpWord\TemplateProcessor;
 
 /**
  * Класс для работы с объектами Word.
- * {@inheritdoc}
+ * @see TemplateProcessor
  */
 class PhpWordTemplateProcessor extends TemplateProcessor
 {
     // (Перегруженная функция)
-    protected function replaceClonedVariables($variableReplacements, $xmlBlock)
+    protected function replaceClonedVariables($variableReplacements, $xmlBlock): array
     {
         $results = [];
         // Для каждого элемента массива сущностей
@@ -24,22 +24,20 @@ class PhpWordTemplateProcessor extends TemplateProcessor
 
     /**
      * Рекурсивно заменяет переменные в XML-блоке (этого функционала нет в TemplateProcessor).
-     * @param array  $rereplacementArray Массив значений для замены (любой глубины, ключи будут разделяться точками)
-     * @param string $xmlBlock           XML-блок
-     * @param string $prefix             Префикс для рекурсивного вызова (ключи более высоких уровней массива, разделённые точками)
+     * @param string $xmlBlock XML-блок
+     * @param string $prefix   Префикс для рекурсивного вызова (ключи более высоких уровней массива, разделённые точками)
      */
     private function replaceClonedVariablesWithArray(
         array $replacementArray,
         string $xmlBlock,
-        string $prefix = ''
+        string $prefix = '',
     ) {
         // Для каждого поля
         foreach ($replacementArray as $search => $replacement) {
             // Если массив - вызываем рекурсивно, добавляя префикс
             if (is_array($replacement)) {
                 $xmlBlock = $this->replaceClonedVariablesWithArray($replacement, $xmlBlock, $search . '.');
-            }
-            // Иначе - выполняем обычную замену (взято из TemplateProcessor, но добавлено использование префикса)
+            } // Иначе - выполняем обычную замену (взято из TemplateProcessor, но добавлено использование префикса)
             else {
                 $xmlBlock = $this->setValueForPart(self::ensureMacroCompleted($prefix . $search), $replacement, $xmlBlock, self::MAXIMUM_REPLACEMENTS_DEFAULT);
             }
@@ -57,19 +55,19 @@ class PhpWordTemplateProcessor extends TemplateProcessor
         foreach ($tags as $tag) {
             // Является ли указанный тег частью двойного блока
             if (Block::IsADoubleBlockPart($tag)) {
-                /** @var bool|int[] Границы XML-блока строки таблицы, в котором лежит тег */
+                /** @var bool|int[] $tag Границы XML-блока строки таблицы, в котором лежит тег */
                 $where_tag = $this->findContainingXmlBlockForMacro($tag, 'w:tr');
                 // Если блок лежит в строчке таблицы
                 if (is_array($where_tag)) {
-                    /** @var string Содержимое абзаца, в котором находится тег (абзац лежит внутри строчки таблицы) */
+                    /** @var string $tag_content_in_tr Содержимое абзаца, в котором находится тег (абзац лежит внутри строчки таблицы) */
                     $tag_content_in_tr = $this->getSlice($where_tag['start'], $where_tag['end']);
                     $tags_count_in_found_content = substr_count($tag_content_in_tr, '${');
                     // Если в этой строчке таблицы находится только один тег
                     if ($tags_count_in_found_content === 1) {
-                        /** @var bool|int[] Границы XML-блока абзаца, в котором лежит тег */
+                        /** @var bool|int[] $tag Границы XML-блока абзаца, в котором лежит тег */
                         $where_tag_in_p = $this->findContainingXmlBlockForMacro($tag, 'w:p');
 
-                        /** @var string Содержимое абзаца, в котором находится тег (абзац лежит внутри строчки таблицы) */
+                        /** @var string $tag_content_in_p Содержимое абзаца, в котором находится тег (абзац лежит внутри строчки таблицы) */
                         $tag_content_in_p = $this->getSlice($where_tag_in_p['start'], $where_tag_in_p['end']);
 
                         // Заменяем строчку таблицы с тегом на абзац с тегом, чтобы при клонировании блока документ не ломался
@@ -82,8 +80,9 @@ class PhpWordTemplateProcessor extends TemplateProcessor
 
     /**
      * Удаляет указанный блок из документа (от открывающего тега, до закрывающего).
-     * @param  string $blockname Название тега
-     * @return bool   True - в случае успешного удаления, false - в случае, если ничего не менялось
+     * @param  string    $blockname Название тега
+     * @return bool      True - в случае успешного удаления, false - в случае, если ничего не менялось
+     * @throws Exception
      */
     public function CustomRemoveBlock(string $blockname): bool
     {
@@ -93,13 +92,13 @@ class PhpWordTemplateProcessor extends TemplateProcessor
         // $this->tempDocumentMainPart = preg_replace($preg_match_condition, '', $this->tempDocumentMainPart, 1, $replacements);
         // return $replacements > 0;
 
-        /** @var bool|int[] Позиции XML-блока, содержащего открывающий тег */
+        /** @var bool|int[] $blockname Позиции XML-блока, содержащего открывающий тег */
         $open_block_position = $this->findContainingXmlBlockForMacro($blockname);
         if (!$open_block_position) {
             throw new Exception("Для тега '$blockname' не был найден содержащий его XML-блок");
         }
 
-        /** @var bool|int[] Позиции XML-блока, содержащего закрывающий тег */
+        /** @var bool|int[] $blockname Позиции XML-блока, содержащего закрывающий тег */
         $close_block_position = $this->findContainingXmlBlockForMacro(Block::RESERVED_KEYWORD_CLOSING_SLASH . $blockname);
         if (!$close_block_position) {
             throw new Exception("Для тега '" . Block::RESERVED_KEYWORD_CLOSING_SLASH . "$blockname' не был найден содержащий его XML-блок");
@@ -120,9 +119,10 @@ class PhpWordTemplateProcessor extends TemplateProcessor
 
     /**
      * Дублирует указанный блок указанное количество раз.
-     * @param  string $blockname    Название тега блока
-     * @param  int    $blocks_count Количество блоков в результате
-     * @return bool   True - в случае успешного клонирования, false - в случае, если ничего не менялось
+     * @param  string    $blockname    Название тега блока
+     * @param  int       $blocks_count Количество блоков в результате
+     * @return bool      True - в случае успешного клонирования, false - в случае, если ничего не менялось
+     * @throws Exception
      */
     public function CustomCloneBlock(string $blockname, int $blocks_count): bool
     {
@@ -131,7 +131,7 @@ class PhpWordTemplateProcessor extends TemplateProcessor
             return $this->CustomRemoveBlock($blockname);
         }
 
-        /** @var bool|int[] Позиции XML-блока, содержащего открывающий тег */
+        /** @var bool|int[] $blockname Позиции XML-блока, содержащего открывающий тег */
         $open_block_position = $this->findContainingXmlBlockForMacro($blockname);
         if (!$open_block_position) {
             throw new Exception("Для тега '$blockname' не был найден содержащий его XML-блок");
@@ -140,7 +140,7 @@ class PhpWordTemplateProcessor extends TemplateProcessor
         // (Важно получить содержимое до того, как шаблон поменяется и позиции сменятся)
         $xml_open_block = $this->getSlice($open_block_position['start'], $open_block_position['end']);
 
-        /** @var bool|int[] Позиции XML-блока, содержащего закрывающий тег */
+        /** @var bool|int[] $blockname Позиции XML-блока, содержащего закрывающий тег */
         $close_block_position = $this->findContainingXmlBlockForMacro(Block::RESERVED_KEYWORD_CLOSING_SLASH . $blockname);
         if (!$close_block_position) {
             throw new Exception("Для тега '" . Block::RESERVED_KEYWORD_CLOSING_SLASH . "$blockname' не был найден содержащий его XML-блок");
