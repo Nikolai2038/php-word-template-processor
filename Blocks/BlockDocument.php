@@ -4,7 +4,7 @@ namespace App\Helpers\PhpWordHelper\Blocks;
 
 use App\Helpers\PhpWordHelper\Block;
 use App\Helpers\PhpWordHelper\BlockDouble;
-use App\Helpers\PhpWordHelper\PhpWordTemplateProcessor;
+use App\Helpers\PhpWordHelper\CustomTemplateProcessor;
 use Exception;
 
 /**
@@ -13,12 +13,12 @@ use Exception;
 class BlockDocument extends BlockDouble
 {
     /** Класс для работы с объектами Word */
-    private PhpWordTemplateProcessor $template_processor;
+    private CustomTemplateProcessor $template_processor;
 
     /**
      * Создаёт блок документа (единственный блок на весь документ, скрытый).
      */
-    public function __construct(PhpWordTemplateProcessor $template_processor)
+    public function __construct(CustomTemplateProcessor $template_processor)
     {
         parent::__construct('Скрытый блок всего документа', null);
 

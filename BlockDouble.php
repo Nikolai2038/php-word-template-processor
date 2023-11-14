@@ -21,8 +21,8 @@ abstract class BlockDouble extends Block
 
     /**
      * Создаёт двойной блок.
-     * @param string           $tag_with_id Название тега
-     * @param BlockDouble|null $parent      Родительский блок
+     * @param string $tag_with_id Название тега
+     * @param BlockDouble|null $parent Родительский блок
      */
     protected function __construct(string $tag_with_id, ?BlockDouble $parent)
     {
@@ -36,10 +36,10 @@ abstract class BlockDouble extends Block
 
     /**
      * Создаёт блоки внутри этого блока на основе переданного массива тегов шаблона документа.
-     * @param array                    &$tags_with_ids     Массив тегов с указанными ID в начале (для уникальности - ни один тег не будет пропущен)
-     * @param PhpWordTemplateProcessor $template_processor Класс для работы с объектами Word
+     * @param array                    &$tags_with_ids Массив тегов с указанными ID в начале (для уникальности - ни один тег не будет пропущен)
+     * @param CustomTemplateProcessor $template_processor Класс для работы с объектами Word
      */
-    protected function LoadBlocks(array &$tags_with_ids, PhpWordTemplateProcessor $template_processor): void
+    protected function LoadBlocks(array &$tags_with_ids, CustomTemplateProcessor $template_processor): void
     {
         $this->blocks = [];
         $tag_with_id = array_shift($tags_with_ids);
@@ -49,16 +49,13 @@ abstract class BlockDouble extends Block
                 $block = new BlockForeach($tag_with_id, $this);
             } elseif (self::IsA($tag_with_id, self::RESERVED_KEYWORD_IF)) {
                 $block = new BlockIf($tag_with_id, $this);
-            }
-            // Если закрывающий тег - выходим из рекурсии
+            } // Если закрывающий тег - выходим из рекурсии
             elseif (self::IsA($tag_with_id, self::RESERVED_KEYWORD_CLOSING_SLASH)) {
                 return;
-            }
-            // Если изображение
+            } // Если изображение
             elseif (self::IsA($tag_with_id, self::RESERVED_KEYWORD_IMAGE)) {
                 $block = new BlockVariableImage($tag_with_id, $template_processor);
-            }
-            // В остальных случаях - обычная переменная
+            } // В остальных случаях - обычная переменная
             else {
                 $block = new BlockVariable($tag_with_id, $template_processor);
             }
@@ -75,9 +72,9 @@ abstract class BlockDouble extends Block
 
     /**
      * Рекурсивно применяет псевдонимы для всех тегов внутри этого блока.
-     * @param PhpWordTemplateProcessor $template_processor Класс для работы с объектами Word
+     * @param CustomTemplateProcessor $template_processor Класс для работы с объектами Word
      */
-    protected function ApplyAliases(PhpWordTemplateProcessor $template_processor): void
+    protected function ApplyAliases(CustomTemplateProcessor $template_processor): void
     {
         // Преобразование всех переменных, добавляя "[#]" для массивов
         foreach ($this->blocks as $block) {
@@ -100,8 +97,7 @@ abstract class BlockDouble extends Block
                     // Обновление свойств объекта
                     $block->foreach_array_name = $new_foreach_array_name;
                     $block->tag_with_id = $new_tag_with_id;
-                }
-                // У двойных блоков не циклов нет (пока что) каких-либо полей, для которых нужно применить псевдоним
+                } // У двойных блоков не циклов нет (пока что) каких-либо полей, для которых нужно применить псевдоним
                 else {
                     $new_tag_with_id = $block->tag_with_id;
                     // Применение псевдонимов
@@ -116,8 +112,7 @@ abstract class BlockDouble extends Block
                 }
                 // Рекурсивно вызываем применение псевдонимов для всех дочерних блоков
                 $block->ApplyAliases($template_processor);
-            }
-            // Во всех остальных случаях - просто меняем тег
+            } // Во всех остальных случаях - просто меняем тег
             else {
                 $new_tag_with_id = $block->tag_with_id;
                 // Применение псевдонимов
@@ -134,10 +129,10 @@ abstract class BlockDouble extends Block
 
     /**
      * Обрабатывает блоки в шаблоне (раскрывает и заполняет циклы).
-     * @param PhpWordTemplateProcessor $template_processor Класс для работы с объектами Word
-     * @param array|null               $data               Массив данных, из которого брать значения переменных
+     * @param CustomTemplateProcessor $template_processor Класс для работы с объектами Word
+     * @param array|null $data Массив данных, из которого брать значения переменных
      */
-    protected function ProccessBlocks(PhpWordTemplateProcessor $template_processor, ?array $data): void
+    protected function ProccessBlocks(CustomTemplateProcessor $template_processor, ?array $data): void
     {
         foreach ($this->blocks as $block) {
             if (is_a($block, self::class)) {
@@ -166,10 +161,10 @@ abstract class BlockDouble extends Block
 
     /**
      * Клонирует блок указанное число раз.
-     * @param PhpWordTemplateProcessor $template_processor Класс для работы с объектами Word
-     * @param int                      $count              Количество клонирований (если 0, то блок удалится)
+     * @param CustomTemplateProcessor $template_processor Класс для работы с объектами Word
+     * @param int $count Количество клонирований (если 0, то блок удалится)
      */
-    protected function CloneBlock(PhpWordTemplateProcessor $template_processor, int $count): void
+    protected function CloneBlock(CustomTemplateProcessor $template_processor, int $count): void
     {
         // Будем генерировать дополнительный номер для каждого блока, так как это помогает при дебаге
         /** @var string Новое названия для блока (потому что обрабатываемое название блока не проходит клонирование) */
@@ -209,18 +204,17 @@ abstract class BlockDouble extends Block
 
     /**
      * Обрабатывает значения глобальных переменных в шаблоне.
-     * @param PhpWordTemplateProcessor $template_processor Класс для работы с объектами Word
-     * @param array|null               $data               Массив данных, из которого брать значения переменных
+     * @param CustomTemplateProcessor $template_processor Класс для работы с объектами Word
+     * @param array|null $data Массив данных, из которого брать значения переменных
      */
-    protected function ProcessGlobalValues(PhpWordTemplateProcessor $template_processor, ?array $data): void
+    protected function ProcessGlobalValues(CustomTemplateProcessor $template_processor, ?array $data): void
     {
         foreach ($this->blocks as $block) {
             // Если блок - двойной, то рекурсивно заполняем сначала его
             if (is_a($block, BlockDouble::class)) {
                 /** @var BlockDouble $block */
                 $block->ProcessGlobalValues($template_processor, $data);
-            }
-            // Если переменная
+            } // Если переменная
             elseif (is_a($block, BlockVariable::class)) {
                 /** @var BlockVariable $block */
                 $tag_without_id = self::GetTagWithoutId($block->tag_with_id);
@@ -247,13 +241,11 @@ abstract class BlockDouble extends Block
                             'width' => $block->GetImageWidth(),
                             'height' => $block->GetImageHeight(),
                         ], 1);
-                    }
-                    // Если пустое - просто стираем блок
+                    } // Если пустое - просто стираем блок
                     else {
                         $template_processor->setValue($block->tag_with_id, $value, 1);
                     }
-                }
-                // В остальных случаях
+                } // В остальных случаях
                 else {
                     $template_processor->setValue($block->tag_with_id, $value ?? $block->GetDefaultValue(), 1);
                 }

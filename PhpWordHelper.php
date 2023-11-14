@@ -14,19 +14,20 @@ abstract class PhpWordHelper
 {
     /**
      * Скачивает файл Word, сгенерированный из шаблона.
-     * @param string     $template_file_path Название файла шаблона (абсолютный путь в контейнере или относительно папки public)
-     * @param string     $result_file_name   Название файла, который будет скачан (указывать с расширением (.docx))
-     * @param array|null $data               Массив данных, по которым будет заполняться шаблон
+     * @param string $template_file_path Название файла шаблона (абсолютный путь в контейнере или относительно папки public)
+     * @param string $result_file_name Название файла, который будет скачан (указывать с расширением (.docx))
+     * @param array|null $data Массив данных, по которым будет заполняться шаблон
      */
     public static function ExportFromTemplate(
         string $template_file_path,
         string $result_file_name,
         ?array $data
-    ): void {
+    ): void
+    {
         // Проверка данных на корректность
         self::CheckData($data);
 
-        $template_processor = new PhpWordTemplateProcessor($template_file_path);
+        $template_processor = new CustomTemplateProcessor($template_file_path);
 
         // Создаём блок документа, рекурсивно заполняя его другими блоками
         $block_document = new BlockDocument($template_processor);

@@ -2,7 +2,7 @@
 
 namespace App\Helpers\PhpWordHelper\Blocks;
 
-use App\Helpers\PhpWordHelper\PhpWordTemplateProcessor;
+use App\Helpers\PhpWordHelper\CustomTemplateProcessor;
 use Exception;
 
 /**
@@ -30,7 +30,7 @@ class BlockVariableImage extends BlockVariable
      * Создаёт блок изображения.
      * {@inheritdoc}
      */
-    public function __construct(string $tag_with_id, PhpWordTemplateProcessor $template_processor)
+    public function __construct(string $tag_with_id, CustomTemplateProcessor $template_processor)
     {
         // -------------------------------------------------------------------------------------------------
         // Сначала нужно вызвать родительский метод для установки значения по умолчанию

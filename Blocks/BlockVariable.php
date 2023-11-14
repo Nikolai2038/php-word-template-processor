@@ -3,7 +3,7 @@
 namespace App\Helpers\PhpWordHelper\Blocks;
 
 use App\Helpers\PhpWordHelper\Block;
-use App\Helpers\PhpWordHelper\PhpWordTemplateProcessor;
+use App\Helpers\PhpWordHelper\CustomTemplateProcessor;
 
 /**
  * Блок переменной (одинарный тег).
@@ -22,9 +22,9 @@ class BlockVariable extends Block
     /**
      * Создаёт блок переменной.
      * @param string $tag_with_id Название тега
-     * @param PhpWordTemplateProcessor $template_processor Класс для работы с объектами Word
+     * @param CustomTemplateProcessor $template_processor Класс для работы с объектами Word
      */
-    public function __construct(string $tag_with_id, PhpWordTemplateProcessor $template_processor)
+    public function __construct(string $tag_with_id, CustomTemplateProcessor $template_processor)
     {
         $this->tag_with_id = $tag_with_id;
         // Если для переменной указано значение по умолчанию

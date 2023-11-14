@@ -55,7 +55,7 @@ abstract class Block
 
     /**
      * Возвращает название тега без указания ID.
-     * @param  string $tag_with_or_without_id Название тега с указанным ("#<ID>#<Название>") или не указанным ("<Название>") ID
+     * @param string $tag_with_or_without_id Название тега с указанным ("#<ID>#<Название>") или не указанным ("<Название>") ID
      * @return string Название тега без ID ("<Название>")
      */
     public static function GetTagWithoutId(string $tag_with_or_without_id): string
@@ -69,8 +69,8 @@ abstract class Block
 
     /**
      * Проверяет является ли указанный тег указанным типом блока.
-     * @param  string $tag        Название тега с указанным ("#<ID>#<Название>") или не указанным ("<Название>") ID
-     * @param  string $block_name Зарезервированное название блока
+     * @param string $tag Название тега с указанным ("#<ID>#<Название>") или не указанным ("<Название>") ID
+     * @param string $block_name Зарезервированное название блока
      * @return bool   True - является, false - нет
      */
     public static function IsA(string $tag, string $block_name): bool
@@ -80,7 +80,7 @@ abstract class Block
 
     /**
      * Проверяет является ли указанный тег частью двойного блока.
-     * @param  string $tag Название тега с указанным ID ("#<ID>#<Название>") или не указанным ID ("<Название>")
+     * @param string $tag Название тега с указанным ID ("#<ID>#<Название>") или не указанным ID ("<Название>")
      * @return bool   True - является, false - нет
      */
     public static function IsADoubleBlockPart(string $tag): bool
@@ -98,7 +98,7 @@ abstract class Block
 
     /**
      * Конвертирует ключ переменной, использующий разделители в виде точек, в прямое обращение к элементу массива PHP.
-     * @param  string $variable_full_name_as_dots Ключ переменной в файле шаблона
+     * @param string $variable_full_name_as_dots Ключ переменной в файле шаблона
      * @return string Обращение к переменной в массиве, как это бы выглядело в коде PHP
      */
     protected static function ConvertVariableNameWithDotsToPhpCode(string $variable_full_name_as_dots): string
@@ -120,15 +120,16 @@ abstract class Block
 
     /**
      * Возвращает значение PHP-переменной по её названию в шаблоне Word.
-     * @param  string            $variable_full_name_as_dots Ключ переменной в файле шаблона
-     * @param  array|null        $data                       Массив данных, в котором искать переменную
+     * @param string $variable_full_name_as_dots Ключ переменной в файле шаблона
+     * @param array|null $data Массив данных, в котором искать переменную
      * @return array|string|null Значение переменной
      */
     protected static function GetVariableValue(
         string $variable_full_name_as_dots,
         // Пусть она и не подсвечивается, эта переменная используется в eval ниже!
         ?array $data
-    ) {
+    )
+    {
         $variable_full_name_as_php = self::ConvertVariableNameWithDotsToPhpCode($variable_full_name_as_dots);
 
         // Вызов команды для генерации подставляемого значения
@@ -140,18 +141,19 @@ abstract class Block
 
     /**
      * Заменяет все теги в указанном блоке, а также в дочерних блоках, заменяя индекс для массива.
-     * @param  PhpWordTemplateProcessor $template_processor    Класс для работы с объектами Word
-     * @param  string                   $foreach_array_name    Название массива
-     * @param  string                   $foreach_variable_name Название псевдонима переменной массива
-     * @param  int                      $index                 Индекс, который необходимо встроить
+     * @param CustomTemplateProcessor $template_processor Класс для работы с объектами Word
+     * @param string $foreach_array_name Название массива
+     * @param string $foreach_variable_name Название псевдонима переменной массива
+     * @param int $index Индекс, который необходимо встроить
      * @return mixed
      */
     protected function ReplaceForeachIndex(
-        PhpWordTemplateProcessor $template_processor,
-        string $foreach_array_name,
-        string $foreach_variable_name,
-        int $index
-    ): void {
+        CustomTemplateProcessor $template_processor,
+        string                  $foreach_array_name,
+        string                  $foreach_variable_name,
+        int                     $index
+    ): void
+    {
         /** @var string Старое название тега */
         $old_tag = $this->tag_with_id;
         /** @var string Новое название тега */
@@ -196,18 +198,19 @@ abstract class Block
 
     /**
      * Возвращает название тега, с заменённым индексом для массива.
-     * @param  string $tag                   Исходное название тега
-     * @param  string $foreach_array_name    Название массива
-     * @param  string $foreach_variable_name Название псевдонима переменной массива
-     * @param  int    $index                 Индекс, который необходимо встроить
+     * @param string $tag Исходное название тега
+     * @param string $foreach_array_name Название массива
+     * @param string $foreach_variable_name Название псевдонима переменной массива
+     * @param int $index Индекс, который необходимо встроить
      * @return string Новое название тега
      */
     protected function GetTagWithReplacedForeachIndex(
         string $tag,
         string $foreach_array_name,
         string $foreach_variable_name,
-        int $index
-    ): string {
+        int    $index
+    ): string
+    {
         $new_tag = $tag;
         // Заменяем псевдоним переменной массива ("user." -> "users[<id>].")
         $new_tag = str_replace(
@@ -244,7 +247,7 @@ abstract class Block
 
     /**
      * Возвращает копию массива блоков (новые объекты).
-     * @param  array<Block> $blocks Исходный массив блоков
+     * @param array<Block> $blocks Исходный массив блоков
      * @return array<Block> Скопированный массив блоков (новые объекты)
      */
     protected static function GetCopyOfArray(array $blocks)
