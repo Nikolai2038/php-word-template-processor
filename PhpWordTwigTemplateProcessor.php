@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Helpers\PhpWord;
+namespace App\Helpers;
 
 use PhpOffice\PhpWord\Exception\CopyFileException;
 use PhpOffice\PhpWord\Exception\CreateTemporaryFileException;
@@ -22,14 +22,16 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
         // Выносим Twig-блоки "{%tr ... %}" из строк таблицы
         'tr',
         // Выносим Twig-блоки "{%p ... %}" из абзацев
-        'p'
+        'p',
     ];
 
-    private string $TAGS_TO_MOVE_OUT_REGEX;
+    private readonly string $TAGS_TO_MOVE_OUT_REGEX;
 
-    private string $IMAGE_PREFIX = ' %%% ';
-    private string $IMAGE_LINK_END = ' %%%%% ';
-    private string $IMAGE_POSTFIX = ' %%% ';
+    private readonly string $IMAGE_PREFIX = ' %%% ';
+
+    private readonly string $IMAGE_LINK_END = ' %%%%% ';
+
+    private readonly string $IMAGE_POSTFIX = ' %%% ';
 
     /**
      * @throws CopyFileException
@@ -43,22 +45,24 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
         // Temporary document filename initialization
         $this->tempDocumentFilename = tempnam(Settings::getTempDir(), 'PhpWord');
         if (false === $this->tempDocumentFilename) {
-            throw new CreateTemporaryFileException(); // @codeCoverageIgnore
+            throw new CreateTemporaryFileException();
         }
 
         // Template file cloning
         if (false === copy($documentTemplate, $this->tempDocumentFilename)) {
-            throw new CopyFileException($documentTemplate, $this->tempDocumentFilename); // @codeCoverageIgnore
+            throw new CopyFileException($documentTemplate, $this->tempDocumentFilename);
         }
 
         // Temporary document content extraction
         $this->zipClass = new ZipArchive();
         $this->zipClass->open($this->tempDocumentFilename);
+
         $index = 1;
         while (false !== $this->zipClass->locateName($this->getHeaderName($index))) {
             $this->tempDocumentHeaders[$index] = $this->readPartWithRels($this->getHeaderName($index));
             ++$index;
         }
+
         $index = 1;
         while (false !== $this->zipClass->locateName($this->getFooterName($index))) {
             $this->tempDocumentFooters[$index] = $this->readPartWithRels($this->getFooterName($index));
@@ -75,7 +79,7 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
     /**
      * @see TemplateProcessor::readPartWithRels() Полностью идентичен, но нужен, для внутреннего вызова своего метода fixBrokenMacros
      */
-    protected function readPartWithRels($fileName)
+    protected function readPartWithRels($fileName): array|string
     {
         $relsFileName = $this->getRelationsName($fileName);
         $partRelations = $this->zipClass->getFromName($relsFileName);
@@ -88,10 +92,10 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
 
     /**
      * Убирает разметку XML внутри синтаксиса Twig, чтобы преобразовать XML в полноценный шаблон для Twig.
-     * Применяется для блоков "{{ ... }}", "{% ... %}", "{# ... #}"
+     * Применяется для блоков "{{ ... }}", "{% ... %}", "{# ... #}".
      * @see TemplateProcessor::fixBrokenMacros() Взят за основу. Вместо синтаксиса "${ ... }" используем синтаксис Twig.
      */
-    protected function fixBrokenMacros($documentPart)
+    protected function fixBrokenMacros($documentPart): array|string
     {
         // Так как при вводе в Word, скобки могут оказаться в разных тегах "<w:t>", учитываем это.
         // Также учитываем, что Twig-макрос может содержать специальные символы "{", "}" и "%".
@@ -112,7 +116,7 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
         // - Закрывающая скобка Twig-блока
         return preg_replace_callback(
             '/(\{)(<\/w:t>.*?)?([{%#])(.*?)([#%}])(<\/w:t>.*?)?(})/',
-            function ($match) {
+            function (array $match): array|string {
                 // Удаляем весь XML между скобок Twig-блока
                 // $match[0] - всё подходящее регулярное выражение
                 $removed_tags = strip_tags($match[0]);
@@ -129,14 +133,14 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
     }
 
     /**
-     * Выносит Twig-блок из указанного XML-тега в разметке Word
-     * @param string $documentPart Содержимое документа в виде XML
-     * @param string $tag_name Название XML-тега в разметке Word.
-     * Например, для тега "<w:tr>" значение этой переменной должно быть "tr".
-     * При этом в самом документе, Twig-блок должен:
-     * - иметь это же название сразу после открытия;
-     * - иметь после названия хотя бы один пробел.
-     * Для примера с "<w:tr>" Twig-блок должен иметь формат "{%tr ... %}".
+     * Выносит Twig-блок из указанного XML-тега в разметке Word.
+     * @param  string $documentPart Содержимое документа в виде XML
+     * @param  string $tag_name     Название XML-тега в разметке Word.
+     *                              Например, для тега "<w:tr>" значение этой переменной должно быть "tr".
+     *                              При этом в самом документе, Twig-блок должен:
+     *                              - иметь это же название сразу после открытия;
+     *                              - иметь после названия хотя бы один пробел.
+     *                              Для примера с "<w:tr>" Twig-блок должен иметь формат "{%tr ... %}".
      * @return string Новое содержимое документа в виде XML
      */
     private function moveOutMacrosFromTag(string $documentPart, string $tag_name): string
@@ -146,7 +150,7 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
         // Находим все XML-теги в разметке Word с указанным названием
         return preg_replace_callback(
             $regex,
-            function ($match) use ($tag_name) {
+            function (array $match) use ($tag_name): string {
                 $xml_tag_content = $match[0];
 
                 // Если содержимое XML-тег (включая сам XML-тег) содержит блок Twig, то:
@@ -156,10 +160,10 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
                 $is_match = preg_match('/.*(\{[{%#]\s*)' . $tag_name . '(\s+.*?[#%}]}).*/', $xml_tag_content, $inner_matches);
                 if ($is_match === 1) {
                     return $inner_matches[1] . $inner_matches[2];
-                } else {
-                    // Если тег не содержит блок Twig - оставляем всё как есть
-                    return $xml_tag_content;
                 }
+
+                // Если тег не содержит блок Twig - оставляем всё как есть
+                return $xml_tag_content;
             },
             $documentPart,
         ) ?? $documentPart;
@@ -182,7 +186,7 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
         // Находим все XML-теги в разметке Word с указанным названием
         return preg_replace_callback(
             $regex_tc,
-            function ($match) use ($regex_vMerge, $regex_tcPr) {
+            function (array $match) use ($regex_vMerge, $regex_tcPr): array|string|null {
                 $xml_tag_content = $match[0];
 
                 // Если ячейка таблицы содержит Twig-блок "{% vm %}"
@@ -193,14 +197,12 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
 
                     return preg_replace_callback(
                         $regex_tcPr,
-                        function ($match) use ($regex_vMerge) {
+                        function (array $match) use ($regex_vMerge): string|array|null {
                             $tcPr_tag_content = $match[0];
                             // Удаляем существующую настройку vMerge (если есть)
                             $tcPr_tag_content = preg_replace_callback(
                                 $regex_vMerge,
-                                function () {
-                                    return '';
-                                },
+                                fn (): string => '',
                                 $tcPr_tag_content,
                             );
                             // Вставляем новую настройку vMerge
@@ -208,10 +210,10 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
                         },
                         $xml_tag_content,
                     );
-                } else {
-                    // Если ячейка таблицы не содержит Twig-блок "{% vm %}" - оставляем всё как есть
-                    return $xml_tag_content;
                 }
+
+                // Если ячейка таблицы не содержит Twig-блок "{% vm %}" - оставляем всё как есть
+                return $xml_tag_content;
             },
             $documentPart,
         ) ?? $documentPart;
@@ -221,7 +223,7 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
      * Подготавливает теги "{% picture ... %} ... {% endpicture %}" для вставки изображений.
      * Между этих тегов в самом шаблоне Word необходимо разместить изображение, которое будет заменено.
      *
-     * @param string $documentPart Содержимое документа в виде XML
+     * @param  string $documentPart Содержимое документа в виде XML
      * @return string Новое содержимое документа в виде XML
      */
     private function prepareImages(string $documentPart): string
@@ -232,7 +234,7 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
         // Находим теги "{% picture ... %}" и подготавливаем их
         $documentPart = preg_replace_callback(
             '/\{%\s*?(' . $this->TAGS_TO_MOVE_OUT_REGEX . '\s+?)?picture\s+?(.*?)\s*?%}/',
-            function ($match) {
+            function (array $match): string {
                 $image_uri_variable = $match[3];
                 return '{% if ' . $image_uri_variable . ' %}' . $this->IMAGE_PREFIX . '{{ ' . $image_uri_variable . '}}' . $this->IMAGE_LINK_END;
             },
@@ -242,16 +244,14 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
         // Находим теги "{% endpicture %}" и подготавливаем их
         return preg_replace_callback(
             '/\{%\s*?(' . $this->TAGS_TO_MOVE_OUT_REGEX . '\s+?)?endpicture\s+?%}/',
-            function () {
-                return $this->IMAGE_POSTFIX . '{% endif %}';
-            },
+            fn (): string => $this->IMAGE_POSTFIX . '{% endif %}',
             $documentPart,
         ) ?? $documentPart;
     }
 
     /**
-     * Вставляет изображения в подготовленные места для их вставки
-     * @param string $documentPart Содержимое документа в виде XML
+     * Вставляет изображения в подготовленные места для их вставки.
+     * @param  string $documentPart Содержимое документа в виде XML
      * @return string Новое содержимое документа в виде XML
      */
     private function insertImages(string $documentPart): string
@@ -261,7 +261,7 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
         // Находим все XML-теги в разметке Word с указанным названием
         return preg_replace_callback(
             '/' . $this->IMAGE_PREFIX . '(.+?)' . $this->IMAGE_LINK_END . '(.+?)' . $this->IMAGE_POSTFIX . '/',
-            function ($match) use ($rels) {
+            function (array $match) use ($rels): string {
                 $image_uri = $match[1];
                 $image_xml = $match[2];
 
@@ -289,8 +289,8 @@ class PhpWordTwigTemplateProcessor extends TemplateProcessor
     }
 
     /**
-     * Заполняет документ данными
-     * @param array $data Данные
+     * Заполняет документ данными.
+     * @param  array       $data Данные
      * @throws LoaderError
      * @throws SyntaxError
      */
