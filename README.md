@@ -1,75 +1,78 @@
 # php-word-template-processor
 
-## 1. Описание
+**EN** | [RU](README_RU.md)
 
-PHP-шаблонизатор для документов Microsoft Word.
+## 1. Description
 
-Решение вдохновлено Python-пакетом [python-docx-template](https://github.com/elapouya/python-docx-template), который, в свою очередь, имел зависимость на шаблонизатор `jinja2`, которым и был вдохновлён сам Twig. Структура документа Word является XML, и это позволяет применить шаблонизатор Twig на эту разметку, предварительно её подготовив. Это и привело к созданию данного решения.
+PHP template processor for Microsoft Word documents.
 
-## 2. Установка
+The solution was inspired by the Python package [python-docx-template](https://github.com/elapouya/python-docx-template), which in turn had a dependency on the `jinja2` template engine, which inspired Twig itself. The structure of a Word document is XML, and this allows the Twig template engine to be applied to this markup, having prepared it in advance. This led to the creation of this solution.
 
-1. В проекте необходимо установить Composer-пакеты `phpoffice/phpword` и `symfony/twig-bundle`;
-2. Затем скопировать файл `./PhpWordTwigTemplateProcessor.php` себе в исходные файлы проекта в удобное место и изменить в нём `namespace` под себя;
-3. Теперь в нужном классе достаточно импортировать класс `PhpWordTwigTemplateProcessor` и использовать его (пример приведён ниже).
+## 2. Installation
 
-## 3. Использование
+1. In the project, you need to install the Composer packages `phpoffice/phpword` and `symfony/twig-bundle`;
+2. Then copy the file `./PhpWordTwigTemplateProcessor.php` to your project's source files in a convenient place and change the `namespace` in it for yourself;
+3. Now in the required class, it is enough to import the class `PhpWordTwigTemplateProcessor` and use it (an example is given below).
 
-Пример:
+## 3. Usage
+
+Example:
 
 ```php
 $file_name_template = 'templates/some.docx';
 $file_name_result = 'public/some.docx';
 
-// Открытие шаблона
+// Open template
 $templateProcessor = new PhpWordTwigTemplateProcessor($file_name_template);
 
-// Заполнение данными
+// Fill template with data
 $templateProcessor->fillWithData($data);
 
-// Сохранение в файл
+// Save result in file
 $templateProcessor->saveAs($file_name_result);
 ```
 
-## 4. Правила шаблона
+## 4. Template rules
 
-Правила написанного шаблонизатора можно описать следующим образом:
+The rules of the written template engine can be described as follows:
 
-- В документе Word можно использовать синтаксис Twig:
-    - Переменные `{{ ... }}`;
-    - Блоки `{% ... %}`;
-    - Комментарии `{# ... #}`.
+- In a Word document, you can use Twig syntax:
 
-  Внутри блоков можно использовать любой синтаксис, который поддерживает сам Twig.
+    - Variables `{{ ... }}`;
+    - Blocks `{% ... %}`;
+    - Comments `{# ... #}`.
 
-- Так как удобно расположение блоков в отдельных абзацах, но сами абзацы с блоками выводить не хочется, можно использовать специальных синтаксис игнорирования места расположения блока. Для его использования, необходимо написать название XML-тега разметки Word сразу после открытия блока. Например, для игнорирования абзаца (XML-тег Word `<w:p>`), нужно вместо `{% ... %}` использовать `{%p ... %}` (допустимо также `{% p ... %}`).
+    Inside the blocks, you can use any syntax that Twig itself supports.
 
-  Таким способом на данный момент поддерживаются теги:
+- Since it is convenient to place blocks in separate paragraphs, but you do not want to output the paragraphs with the blocks themselves, you can use a special syntax for ignoring the location of the block. To use it, you need to write the name of the Word XML markup tag immediately after opening the block. For example, to ignore a paragraph (Word XML tag `<w:p>`), you need to use `{%p ... %}` instead of `{% ... %}` (`{% p ... %}` is also acceptable).
 
-    - `p` - Абзац;
-    - `tr` - Строка таблицы.
+    The following tags are currently supported in this way:
 
-  Для добавления новых тегов достаточно их добавить в массив `$TAGS_TO_MOVE_OUT`.
+    - `p` - Paragraph;
+    - `tr` - Table row.
 
-- Внутри синтаксиса Twig можно использовать кавычки `‘'` и `“”`, которые будут интерпретироваться как `''` и `""` соответственно. Это сделано для удобства ввода шаблона в Word, так как по умолчанию там вставляются как раз первый тип кавычек.
+    To add new tags, simply add them to the `$TAGS_TO_MOVE_OUT` array.
 
-- Помимо функционала Twig, добавлена возможность вставки изображений по их URI. Для этого используется блок:
+- Within the Twig syntax, you can use the `‘'` and `“”` quotes, which will be interpreted as `''` and `""` respectively. This is done to make it easier to enter the template in Word, since the first type of quotes is inserted there by default.
 
-  ```twig
-  {% picture <uri> %}
-  ...
-  <изображение, которое будет заменено>
-  ...
-  {% endpicture %}
-  ```
+- In addition to the Twig functionality, the ability to insert images by their URI has been added. To do this, use the block:
 
-  Если получить изображение по URI не удалось, то блок не будет выведен.
+    ```twig
+    {% picture <uri> %}
+    ...
+    <image to be replaced>
+    ...
+    {% endpicture %}
+    ```
 
-- Также присутствует возможность вертикального объединения ячеек, расположенных в одном цикле `for`.
+    If it was not possible to get the image by URI, the block will not be output.
 
-  Это используется в двойных циклах, расположенных в таблицах, когда в первом столбце отображается идентификатор внешнего цикла.
+- There is also the ability to vertically merge cells located in one `for` loop.
 
-  Для использования объединения, достаточно добавить тег `{% vm %}` (от слов "vertical merge") в нужную ячейку.
+    This is used in double loops located in tables, when the identifier of the outer loop is displayed in the first column.
 
-## 5. Развитие
+    To use the merge, simply add the `{% vm %}` tag (from the words "vertical merge") to the desired cell.
 
-Не стесняйтесь участвовать в развитии репозитория, используя [pull requests](https://github.com/Nikolai2038/php-word-template-processor/pulls) или [issues](https://github.com/Nikolai2038/php-word-template-processor/issues)!
+## 5. Contribution
+
+Feel free to contribute via [pull requests](https://github.com/Nikolai2038/php-word-template-processor/pulls) or [issues](https://github.com/Nikolai2038/php-word-template-processor/issues)!
